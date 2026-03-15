@@ -2,6 +2,21 @@
 
 A Claude Code skill that fetches live browser API documentation before writing code — covering **all major browsers** including experimental and bleeding-edge features.
 
+## Why Use This
+
+Without this skill, Claude writes browser API code from training data — which means:
+- **Stale signatures** — APIs evolve; training data doesn't
+- **Chrome bias** — most examples online target Chrome, so Firefox/Safari differences get missed
+- **Missed experimental APIs** — newer or behind-flag features get skipped entirely
+- **Wrong browser support assumptions** — code that works in one browser silently breaks in another
+
+With this skill, Claude fetches live docs before touching a single line of code. You get:
+- **Accurate, current API signatures** pulled directly from MDN
+- **Full cross-browser picture** — what's shipped, what's flagged, what's missing per browser
+- **Experimental feature awareness** — origin trials, nightly builds, and behind-flag APIs included
+- **Early-stage proposal visibility** — WICG and W3C draft specs surfaced before they're mainstream
+- **Compatibility warnings upfront** — polyfill suggestions and browser gap callouts before you ship broken code
+
 ## What It Does
 
 Before writing any browser/web API code, this skill:
