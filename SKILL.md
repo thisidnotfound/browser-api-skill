@@ -27,38 +27,42 @@ If `$ARGUMENTS` is provided, use that as the target API(s).
 If invoked automatically, identify every Web API relevant to the current coding task from context.
 
 ### Step 2 — Fetch MDN Documentation (Primary Source)
-For each API, fetch its MDN page. MDN URL pattern:
-- `https://developer.mozilla.org/en-US/docs/Web/API/[InterfaceName]`
-- `https://developer.mozilla.org/en-US/docs/Web/API/[InterfaceName]/[method]`
+For each API, fetch its MDN page for syntax, description, and usage. MDN URL patterns:
+- CSS property: `https://developer.mozilla.org/en-US/docs/Web/CSS/[property-name]`
+- JS API: `https://developer.mozilla.org/en-US/docs/Web/API/[InterfaceName]`
+- JS method: `https://developer.mozilla.org/en-US/docs/Web/API/[InterfaceName]/[method]`
 
-MDN includes experimental badges and per-browser compat tables — note any API or method marked **Experimental**, **Non-standard**, or **Deprecated**, and which browsers support it.
+Note any API or method marked **Experimental**, **Non-standard**, or **Deprecated**.
 
-### Step 3 — Check All Browser Platform Status Trackers
-For experimental, in-progress, or cutting-edge features, check **all four** major browser trackers:
+### Step 3 — Fetch Exact Browser Version Support (Raw JSON — Most Reliable)
+MDN pages render compat tables dynamically, so fetch the raw browser-compat-data JSON directly instead — this always works and returns exact version numbers:
+
+- **CSS property:** `https://raw.githubusercontent.com/mdn/browser-compat-data/main/css/properties/[property-name].json`
+- **JS API/Interface:** `https://raw.githubusercontent.com/mdn/browser-compat-data/main/api/[InterfaceName].json`
+- **HTML element:** `https://raw.githubusercontent.com/mdn/browser-compat-data/main/html/elements/[element].json`
+
+Parse the JSON for `chrome`, `firefox`, `safari`, `edge` version numbers and any `flags` entries. A `flags` entry means the feature requires manual browser flag activation.
+
+### Step 4 — Check Browser Platform Status Trackers for Experimental Features
+For anything experimental, in-progress, or cutting-edge, use **WebSearch** (not WebFetch) since these sites are JS-rendered and WebFetch cannot extract data from them:
 
 **Chrome / Edge (Chromium)**
-- Chrome Platform Status: `https://chromestatus.com/features`
-- WebSearch: `site:chromestatus.com [api name]`
-- Status levels: In Development / Origin Trial / Shipped / Behind Flag / Removed
+- WebSearch: `site:chromestatus.com [api name]` — look for shipping status, origin trial info
+- Status levels to note: In Development / Origin Trial / Shipped / Behind Flag / Removed
 
 **Firefox**
-- Firefox Platform Status: `https://platform-status.mozilla.org/`
-- MDN Firefox Nightly notes: `https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases`
-- WebSearch: `site:platform-status.mozilla.org [api name]`
+- WebSearch: `site:bugzilla.mozilla.org [api name] implementation` — find the tracking bug
+- WebSearch: `firefox [api name] nightly support` — for recent additions
+- Firefox release notes: `https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases`
 
 **Safari / WebKit**
-- WebKit Feature Status: `https://webkit.org/status/`
-- Safari Technology Preview release notes: `https://webkit.org/blog/`
-- WebSearch: `site:webkit.org [api name] status`
+- WebKit feature status page is **retired** — do not use `webkit.org/status/`
+- WebSearch: `site:webkit.org [api name]` — finds blog posts about new Safari features
+- WebSearch: `safari technology preview [api name]` — for bleeding-edge Safari features
+- WebKit standards positions (for WebKit's stance on a spec): `https://github.com/WebKit/standards-positions`
 
-**Edge (independent tracking beyond Chromium)**
-- Edge Platform Status: `https://developer.microsoft.com/en-us/microsoft-edge/status/`
-- WebSearch: `site:developer.microsoft.com microsoft edge status [api name]`
-
-### Step 4 — Check Can I Use for Compatibility
-For a unified cross-browser compat view:
-- `https://caniuse.com/?search=[feature]`
-- Fetch the page or use WebSearch: `site:caniuse.com [api name]`
+**Edge (beyond Chromium)**
+- WebSearch: `site:developer.microsoft.com microsoft edge [api name] status`
 
 ### Step 5 — Check Early-Stage Proposals
 For APIs not yet in any browser:
@@ -75,33 +79,36 @@ Return a structured summary per API:
 - Spec: [W3C/WHATWG/WICG url if applicable]
 
 ### Browser Support
-| Browser  | Status                          | Notes                     |
-|----------|---------------------------------|---------------------------|
-| Chrome   | Shipped vXX / Origin Trial / Flag | ...                     |
-| Firefox  | Shipped vXX / In Development / No | ...                     |
-| Safari   | Shipped vXX / In Preview / No   | ...                       |
-| Edge     | Shipped vXX / Flag / No         | ...                       |
+| Browser  | Status                            | Notes                     |
+|----------|-----------------------------------|---------------------------|
+| Chrome   | Shipped vXX / Origin Trial / Flag | ...                       |
+| Firefox  | Shipped vXX / Behind Flag / No    | flag name if applicable   |
+| Safari   | Shipped vXX / In Preview / No     | ...                       |
+| Edge     | Shipped vXX / Flag / No           | ...                       |
 
 ### API Details
 - Key interfaces/methods: ...
 - Constructor/syntax: ...
 - Experimental methods (any browser): ...
-- Flags required: ...
+- Flags required: exact flag names per browser
 - Origin trial enrollment needed: yes/no
 
 ### Gotchas
 - Browser-specific behavior differences: ...
 - Known bugs or incomplete implementations: ...
+- Order/precedence issues (e.g. shorthand resets): ...
+- Recommended approach for cross-browser support: ...
 - Polyfill available: yes/no — [link]
 ```
 
-Then proceed to use this grounded knowledge when writing code. Never guess an API signature — always fetch it first.
+Then proceed to use this grounded knowledge when writing code. **Never guess an API signature — always fetch it first.**
 
 ## Important Rules
 - Cover **all browsers equally** — do not focus only on Chrome
 - Always include experimental and non-standard APIs — do not skip them
+- Use **raw MDN compat JSON** (Step 3) for version numbers — do not try to scrape MDN HTML pages or caniuse.com for compat tables, they are JS-rendered and will not return data
+- Use **WebSearch** for browser platform status trackers — do not WebFetch chromestatus.com or platform-status.mozilla.org directly, they are JS-rendered
 - If an API is only in one browser, call that out clearly and suggest a cross-browser approach or polyfill
-- If Safari or Firefox lag behind Chrome on an API, note the version gap
-- Flag anything that requires a browser flag, origin trial, or has partial support
-- If an API changed recently across any browser (new methods, deprecations), call it out
-- For Safari-only or Firefox-only experimental features, check their respective trackers even if Chrome has no entry
+- If Firefox or Safari lag behind Chrome, surface the gap and recommend a CSS-first or progressive enhancement approach where applicable
+- Flag anything requiring a browser flag (include exact flag name), origin trial, or with partial support
+- If an API changed recently across any browser (new methods, deprecations, bugs), call it out
